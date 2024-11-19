@@ -1,0 +1,21 @@
+{% extends 'counting/base.html' %}
+{% load crispy_forms_filters %}
+{% block content %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+<head>
+    <link href="{% static '/counting/css/index.css' %}" rel="stylesheet" type="text/css"/>
+    <title>Homepage</title>
+</head>
+<div class="menu-wrapper flex-center">
+    <div class="menu-container flex-column fifty-percent-page">
+        <button type="button" class="btn btn-dark main-menu-button"><a href="{% url 'count' %}">Start New Count</a></button>
+    </div>
+</div>
+
+
+
+{% endblock %}
+
+

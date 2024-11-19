@@ -1,0 +1,1230 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="EN">
+  <head>
+    <title></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <link href="{% static '/counting/css/base.css' %}" rel="stylesheet" type="text/css"/>
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" crossorigin="anonymous"></script>
+  </head>
+  <style>
+        @media print {
+            .hide-in-pdf {
+                display: none;
+            }
+        }
+  </style>
+  <body>
+    <div id="content">
+        <div style="display: none" class="blur-overlay parishoner hide-in-pdf">
+            <div class="modal-overlay">
+                <div class="modal-info-container parishoner-container">
+
+                </div>
+            </div>
+        </div>
+        <div style="display: none" class="blur-overlay review hide-in-pdf">
+            <div class="modal-overlay">
+                <div class="modal-info-container review-container">
+
+                </div>
+            </div>
+        </div>
+        <div style="display: none" class="blur-overlay create-custom hide-in-pdf">
+            <div class="modal-overlay">
+                <div class="modal-info-container create-custom-container">
+                </div>
+            </div>
+        </div>
+        <div class="header hide-in-pdf">
+            <h5>Asor Accounting</h5>
+        </div>
+        {% block content %}{% endblock %}
+    </div>
+
+
+  </body>
+
+  <script>
+
+    $(document).on('change', '.donation-entry', function(){
+        let count_id = $('.count-id-hidden').attr('data-count-id');
+        let denomination = $(this).attr('data-denomination');
+        let category_id = $(this).attr('data-category-id');
+        let custom_category_id = $(this).attr('data-custom-category-id');
+        let new_value = $(this).val();
+        if(new_value === '' || new_value === undefined || new_value === null){
+            new_value = 0;
+        }
+        // console.log({'count_id':count_id, 'denomination':denomination, 'category_id':category_id, 'new_value': new_value})
+        let data = {'count_id':count_id, 'denomination':denomination, 'category_id':category_id, 'custom_category_id': custom_category_id, 'new_value': new_value, csrfmiddlewaretoken: '{{ csrf_token }}',}
+         $.ajax({
+             type: 'POST',
+             url: "{% url 'updatecount' %}",
+             data: data,
+             success: function(response){
+                 console.log(response)
+                 let current_total = response.current_total.toFixed(2);
+                 let current_count = response.current_count
+                 let denomination = response.denomination
+                 let count_ones = response.count_ones
+                 let count_twos = response.count_twos
+                 let count_fives = response.count_fives
+                 let count_tens = response.count_tens
+                 let count_twentys = response.count_twentys
+                 let count_fiftys = response.count_fiftys
+                 let count_hundreds = response.count_hundreds
+                 let total_ones = response.total_ones.toFixed(2)
+                 let total_twos = response.total_twos.toFixed(2)
+                 let total_fives = response.total_fives.toFixed(2)
+                 let total_tens = response.total_tens.toFixed(2)
+                 let total_twentys = response.total_twentys.toFixed(2)
+                 let total_fiftys = response.total_fiftys.toFixed(2)
+                 let total_hundreds = response.total_hundreds.toFixed(2)
+                 let grand_total = response.grand_total.toFixed(2)
+                 let category_id = response.category_id
+                 $('.donation-cat-total[data-category-id="' + category_id + '"]').html('$' + current_total)
+                 $('.total-one-count').html(count_ones)
+                 $('.total-two-count').html(count_twos)
+                 $('.total-five-count').html(count_fives)
+                 $('.total-ten-count').html(count_tens)
+                 $('.total-twenty-count').html(count_twentys)
+                 $('.total-fifty-count').html(count_fiftys)
+                 $('.total-hundred-count').html(count_hundreds)
+                 $('.one-total').html('$' + total_ones)
+                 $('.two-total').html('$' + total_twos)
+                 $('.five-total').html('$' + total_fives)
+                 $('.ten-total').html('$' + total_tens)
+                 $('.twenty-total').html('$' + total_twentys)
+                 $('.fifty-total').html('$' + total_fiftys)
+                 $('.hundred-total').html('$' + total_hundreds)
+                 $('.grand-total').html('$' + grand_total)
+             },
+             error: function(response){
+                 console.log('an error occurred')
+             }
+         })
+     });
+
+     function updateTotals() {
+        let totalCounts = {
+            ones: 0,
+            twos: 0,
+            fives: 0,
+            tens: 0,
+            twenties: 0,
+            fifties: 0,
+            hundreds: 0
+        };
+    
+        // Iterate over each category row to update its total and aggregate the denominations
+        $('.standard-collection-row').each(function() {
+            let categoryTotal = 0;
+            let $row = $(this);
+    
+            $row.find('.donation-entry').each(function() {
+                let denomination = parseInt($(this).attr('data-denomination'), 10);
+                let amount = parseFloat($(this).val()) || 0;
+                let value = denomination * amount;
+    
+                categoryTotal += value;
+    
+                // Aggregate totals by denomination
+                switch(denomination) {
+                    case 1: totalCounts.ones += amount; break;
+                    case 2: totalCounts.twos += amount; break;
+                    case 5: totalCounts.fives += amount; break;
+                    case 10: totalCounts.tens += amount; break;
+                    case 20: totalCounts.twenties += amount; break;
+                    case 50: totalCounts.fifties += amount; break;
+                    case 100: totalCounts.hundreds += amount; break;
+                }
+            });
+    
+            // Update the category total
+            $row.find('.donation-cat-total').text('$' + categoryTotal.toFixed(2));
+        });
+    
+        // Update totals by denomination
+        $('.total-one-count').text(totalCounts.ones);
+        $('.total-two-count').text(totalCounts.twos);
+        $('.total-five-count').text(totalCounts.fives);
+        $('.total-ten-count').text(totalCounts.tens);
+        $('.total-twenty-count').text(totalCounts.twenties);
+        $('.total-fifty-count').text(totalCounts.fifties);
+        $('.total-hundred-count').text(totalCounts.hundreds);
+    
+        // Calculate and update grand total
+        let grandTotal = totalCounts.ones * 1 + totalCounts.twos * 2 + totalCounts.fives * 5 +
+                         totalCounts.tens * 10 + totalCounts.twenties * 20 + totalCounts.fifties * 50 +
+                         totalCounts.hundreds * 100;
+        $('.grand-total').text('$' + grandTotal.toFixed(2));
+    }
+    
+    function updateUIWithResponse(response) {
+        // Extracting data from the response
+        let category_id = response.category_id;
+        let current_total = parseFloat(response.current_total).toFixed(2);
+        let count_ones = response.count_ones;
+        let count_twos = response.count_twos;
+        let count_fives = response.count_fives;
+        let count_tens = response.count_tens;
+        let count_twentys = response.count_twentys;
+        let count_fiftys = response.count_fiftys;
+        let count_hundreds = response.count_hundreds;
+        let total_ones = parseFloat(response.total_ones).toFixed(2);
+        let total_twos = parseFloat(response.total_twos).toFixed(2);
+        let total_fives = parseFloat(response.total_fives).toFixed(2);
+        let total_tens = parseFloat(response.total_tens).toFixed(2);
+        let total_twentys = parseFloat(response.total_twentys).toFixed(2);
+        let total_fiftys = parseFloat(response.total_fiftys).toFixed(2);
+        let total_hundreds = parseFloat(response.total_hundreds).toFixed(2);
+        let grand_total = parseFloat(response.grand_total).toFixed(2);
+    
+        // Updating the HTML elements with the new totals
+        $('.donation-cat-total[data-category-id="' + category_id + '"]').html('$' + current_total);
+        $('.total-one-count').html(count_ones);
+        $('.total-two-count').html(count_twos);
+        $('.total-five-count').html(count_fives);
+        $('.total-ten-count').html(count_tens);
+        $('.total-twenty-count').html(count_twentys);
+        $('.total-fifty-count').html(count_fiftys);
+        $('.total-hundred-count').html(count_hundreds);
+        $('.one-total').html('$' + total_ones);
+        $('.two-total').html('$' + total_twos);
+        $('.five-total').html('$' + total_fives);
+        $('.ten-total').html('$' + total_tens);
+        $('.twenty-total').html('$' + total_twentys);
+        $('.fifty-total').html('$' + total_fiftys);
+        $('.hundred-total').html('$' + total_hundreds);
+        $('.grand-total').html('$' + grand_total);
+    }
+
+      $(document).on('change', '.parishioner-select', function(){
+          let type = $(this).children('option:selected').attr('data-type');
+          if(type == 'add'){
+              $('.blur-overlay.parishoner').show();
+              $('.modal-info-container.parishoner-container').html(`
+                <button class="close-modal" id='close'>close</button>
+                <div class="new-parishioner-container">
+                    <h3>Add Parishioner</h3>
+                    <div class="info-wrapper">
+                        <div class="info-container basic-info-container input-group mb-3">
+                            <input placeholder="First Name" class="parishioner-input first_name_input form-control" type="text">
+                            <input placeholder="Last Name" class="parishioner-input last_name_input form-control" type="text">
+                            <input placeholder="Disabled" class="parishioner-input form-control" disabled type="text">
+                        </div>
+                        <div style="text-align: center;">
+                            <label for="add-address">Include Address? - Optional</label>
+                            <input class="enable-address" name="add-address" type="checkbox">
+                        </div>
+                        <div class="info-container address-container input-group mb-3">
+                            <input class="parishioner-input form-control address-1-input" placeholder="Address 1" type="text" disabled>
+                            <input class="parishioner-input form-control address-2-input" placeholder="Address 2" type="text" disabled>
+                            <input class="parishioner-input form-control city-input" placeholder="City" type="text" disabled>
+                            <select class="parishioner-input form-control" id="parishioner-state-input" disabled>
+                                <option value="">Select State...</option>
+                            </select>
+                            <input class="parishioner-input form-control zip-input" placeholder="Zip Code" id="zip" name="zip" type="text" inputmode="numeric" pattern="^(?(^00000(|-0000))|(\d{5}(|-\d{4})))$" disabled>
+                        </div>
+                        <div style="text-align: center;">
+                            <label for="add-contact">Include Contact Info? - Optional</label>
+                            <input class="enable-contact" name="add-contact" type="checkbox">
+                        </div>
+                        <div class="info-container contact-container input-group mb-3">
+                            <select class="parishioner-input form-control" id="parishioner-phone-input" disabled>
+                                <option value="">Phone Type...</option>
+                            </select>
+                            <input class="parishioner-input form-control phone-number-input" placeholder="Phone #" type="tel" disabled>
+                            <input class="parishioner-input form-control email-input" placeholder="Email Address" type="email" id="email" name="email" disabled>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-success save-new-parishioner">Save</button>
+                </div>
+              `)
+              data = {csrfmiddlewaretoken: '{{ csrf_token }}',}
+              $.ajax({
+              type: 'POST',
+              url: "{% url 'getcontactdata' %}",
+              data:data,
+            success: function(response){
+                let state_input = $('#parishioner-state-input');
+                let contact_input = $('#parishioner-phone-input');
+                console.log(response)
+                state_input.append(response.state_text)
+                contact_input.append(response.contact_text)
+            },
+            error: function(response){
+                console.log('an error occurred')
+            }
+            })
+          }
+      });
+
+      $(document).on('click', '.close-modal', function(){
+         $('.blur-overlay.parishoner').hide();
+         $('.blur-overlay.review').hide();
+         $('.blur-overlay.create-custom').hide();
+      });
+
+      $(document).on('click', '#add-check', function() {
+        var csrfToken = '{{ csrf_token }}'; // Ensure you're correctly passing Django's CSRF token.
+        $.ajax({
+            type: 'POST',
+            url: "{% url 'getcheckdata' %}",
+            data: { csrfmiddlewaretoken: csrfToken },
+            success: function(response) {
+                let last_check_count = parseInt($('.check-row-number').last().attr('data-check-row-value'));
+                let new_check_count = last_check_count + 1;
+                let unique_id = generateUniqueId();
+                let cloned_select = $('.check-category-selection').last().clone();
+                cloned_select.attr('data-unique-id', unique_id);
+                cloned_select.addClass('form-select'); // Ensures new dropdowns have form-select class
+    
+                // Prepare the select HTML string
+                let selectHtml = cloned_select.prop('outerHTML');
+    
+                // Prepare the complete HTML string for the new check row
+                let new_check_html = `
+                    <tr class="check_row">
+                        <td class="check-row-number" data-check-row-value="${new_check_count}">${new_check_count}</td>
+                        <td>${selectHtml}</td>
+                        ${response.return_string}
+                    </tr>`;
+    
+                // Append the new row to the table
+                $('#check-table tbody').append(new_check_html);
+    
+                // Find the last row added and apply classes directly in the HTML
+                let newRow = $('#check-table tbody .check_row:last');
+                newRow.find('input[type="text"], input[type="number"]').addClass('form-control');
+                newRow.find('input[type="checkbox"]').addClass('form-check-input');
+                newRow.find('select').addClass('form-select');
+            },
+            error: function(response) {
+                console.log('An error occurred', response);
+            }
+        });
+    });
+
+      $(document).on('click', '.enable-address', function(){
+          if($(this).prop("checked")){
+            $('.address-1-input').removeAttr("disabled");
+            $('.address-2-input').removeAttr("disabled");
+            $('.city-input').removeAttr("disabled");
+            $('#parishioner-state-input').removeAttr("disabled");
+            $('.zip-input').removeAttr("disabled");
+          } else {
+            $('.address-1-input').attr('disabled', true);
+            $('.address-2-input').attr('disabled', true);
+            $('.city-input').attr('disabled', true);
+            $('#parishioner-state-input').attr('disabled', true);
+            $('.zip-input').attr('disabled', true);
+          }
+      });
+
+      $(document).on('click', '.enable-contact', function(){
+          if($(this).prop("checked")){
+            $('#parishioner-phone-input').removeAttr("disabled");
+            $('.phone-number-input').removeAttr("disabled");
+            $('.email-input').removeAttr("disabled");
+          } else {
+            $('#parishioner-phone-input').attr('disabled', true);
+            $('.phone-number-input').attr('disabled', true);
+            $('.email-input').attr('disabled', true);
+          }
+      });
+
+        $(document).on('click', '.save-new-parishioner', function(){
+            let first_name = $('.first_name_input').val();
+            let last_name = $('.last_name_input').val();
+            let full_name  = first_name + ' ' + last_name;
+            let save_address = false;
+            let save_contact = false;
+            let error = '';
+            let address_1 = '';
+            let address_2 = '';
+            let city = '';
+            let state = '';
+            let zip = '';
+            let phone_type = $('#parishioner-phone-input').val();
+            let phone_number = $('.phone-number-input').val();
+            let email = $('.email-input').val();
+            if($('.enable-address').prop("checked") == true){
+                console.log('getting to address save');
+                address_1 = $('.address-1-input').val();
+                address_2 = $('.address-2-input').val();
+                city = $('.city-input').val();
+                state = $('#parishioner-state-input').val();
+                zip = $('.zip-input').val();
+                error = '';
+                if(address_1 == '' || address_1 == undefined){
+                   error += 'Please enter an address!\n'
+                }
+                if(city == '' || city == undefined){
+                   error += 'Please enter a city!\n'
+                }
+                if(state == '' || state == undefined){
+                   error += 'Please choose a state!\n'
+                }
+                if(zip == '' || zip == undefined){
+                   error += 'Please enter a zip code!\n'
+                }
+                if(error.length > 0){
+                   alert(error);
+                   return false;
+                }
+                save_address = true;
+            }
+           if($('.enable-contact').prop("checked") == true){
+               console.log('getting to contact save');
+               phone_type = $('#parishioner-phone-input').val();
+               phone_number = $('.phone-number-input').val();
+               email = $('.email-input').val();
+               error = '';
+               if(phone_type == '' || phone_type == undefined){
+                   error += 'Please choose a phone type!\n'
+               }
+               if(phone_number == '' || phone_number == undefined){
+                   error += 'Please enter a phone number!\n'
+               }
+               if(email == '' || email == undefined){
+                   error += 'Please enter an email!\n'
+               }
+
+               if(error.length > 0){
+                   alert(error);
+                   return false;
+               }
+               save_contact = true;
+           }
+            if(first_name == '' || first_name == undefined){
+                error += 'Please enter a first name!\n'
+               }
+            if(last_name == '' || last_name == undefined){
+                error += 'Please enter a last name!\n'
+            }
+
+            if(error.length > 0){
+               alert(error);
+               return false;
+            }
+
+          let data = {csrfmiddlewaretoken: '{{ csrf_token }}', 'first_name': first_name, 'last_name': last_name,
+              'address_1':address_1, 'address_2': address_2, 'city': city, 'state' : state, 'zip': zip,
+              'phone_type': phone_type, 'phone_number': phone_number, 'email': email, 'save_address': save_address,
+              'save_contact':save_contact,}
+          $.ajax({
+              type: 'POST',
+              url: "{% url 'savenewparishioner' %}",
+              data:data,
+            success: function(response){
+                $('.modal-info-container.parishoner-container').html('');
+                $('.blur-overlay.parishoner').hide();
+                $('select.parishioner-select').each(function() {
+                $(this).append('<option value="'+ response.parishoner_id +'">' + response.parishoner_name + '</option>');
+                if ($(this).val() === 'Add New Parishioner') {
+                    $(this).val(response.parishoner_id);
+                }
+            });
+            },
+            error: function(response){
+                console.log('an error occurred')
+            }
+            })
+      })
+
+    $(document).on('click', '#review-count', function() {
+        $(this).attr('disabled', 'disabled');
+        let return_object = {};
+        let count_id = $('.count-id-hidden').attr('data-count-id');
+        return_object['count_id'] = count_id;
+        return_object['checks'] = {};
+        let counter = 0;
+        $('.check_row').each(function(index, element) {
+            let isValid = validate_check_data(element);
+            let custom_category = null;
+            let new_obj;
+            if (isValid) {
+                counter += 1;
+                let selectedOption = $(element).find('.check-category-selection option:selected');
+                if(selectedOption.hasClass('custom-collection-category')){
+                    custom_category = parseInt(selectedOption.val());
+                } else {
+                    custom_category = null;
+                }
+                let category = parseInt(selectedOption.attr('data-category-id'));
+                let check_number = $(element).find('.parishoner-check-number').val();
+                let cash_donation = $(element).find('.cash-donation').prop("checked");
+                let parishioner = parseInt($(element).find('.parishioner-select').val());
+                let donation_amount = parseFloat($(element).find('.donation-amount').val());
+                new_obj = {
+                    'category': category,
+                    'check_number': check_number,
+                    'cash_donation': cash_donation,
+                    'parishioner': parishioner,
+                    'donation_amount': donation_amount,
+                    'count_id': count_id,
+                    'custom_category': custom_category
+                };
+                return_object['checks'][counter] = new_obj;
+            } else {
+                alert("Please audit the checks for missing data highlighted in red.");
+                return false;
+            }
+        });
+
+        // Create the data to be sent to the backend
+        var data = {
+            'return_object': return_object,
+            'csrfmiddlewaretoken': '{{ csrf_token }}'
+        };
+
+        // Send the AJAX request to submit_count
+        $.ajax({
+            url: "{% url 'submit_count' %}",
+            type: 'POST',
+            dataType: 'json',
+            data: JSON.stringify(data),
+            beforeSend: function(xhr, settings) {
+                xhr.setRequestHeader("X-CSRFToken", data.csrfmiddlewaretoken);
+            },
+            success: function(response) {
+                if (response.success === 1) {
+                    let reviewData = {
+                        'redirect': '1',
+                        'count_id': response.count_id,
+                        'csrfmiddlewaretoken': '{{ csrf_token }}'
+                    };
+                    // Send the second AJAX request to review_count
+                    $.ajax({
+                        url: "{% url 'review_count' %}",
+                        type: 'POST',
+                        dataType: 'html',
+                        data: JSON.stringify(reviewData),
+                        beforeSend: function(xhr, settings) {
+                            xhr.setRequestHeader("X-CSRFToken", reviewData.csrfmiddlewaretoken);
+                        },
+                        success: function(response) {
+                            // Render the HTML response in a container element
+                            $('.modal-info-container.review-container').html(response);
+                            $('.blur-overlay.review').show();
+                        },
+                        error: function(xhr, status, error) {
+                            console.log('Error:', error);
+                        }
+                    });
+                }
+            },
+            error: function(xhr, status, error) {
+                console.log('Error:', error);
+            }
+        });
+    });
+
+    $(document).on('click', '.add-custom-collection', function(){
+        let donation_type = $(this).attr('data-category-id');
+        let category_name = $(this).attr('data-category-name');
+        let category_html = ''
+        category_html += '<button class="close-modal" id="close">close</button>'
+        category_html += '<div class="custom-category-name-container form-group">'
+            category_html += '<label class="category-name-input" for="category-name">'+ category_name +' Name:</label>'
+            category_html += '<input class="custom-category-name-input form-control" size="100" type="text">'
+            category_html += '<button type="submit" data-donation-type="' + donation_type + '" class="btn btn-primary submit-custom-category-name">Submit</button>'
+        category_html += '</div>'
+        $('.modal-info-container.create-custom-container').html(category_html);
+        $('.blur-overlay.create-custom').show();
+    });
+
+    $(document).on('change', '.check-category-selection', function(){
+        if ($(this).find('option:selected').hasClass('add-custom-collection')) {
+            let donation_type = $(this).find('option:selected').data('category-id');
+            let category_name = $(this).find('option:selected').data('category-name');
+            let unique_id = $(this).attr('data-unique-id');
+            let category_html = '';
+            category_html += '<button class="close-modal" id="close">close</button>';
+            category_html += '<div class="custom-category-name-container form-group">';
+            category_html += '<label class="category-name-input" for="category-name">'+ category_name +' Name:</label>';
+            category_html += '<input class="custom-category-name-input form-control" size="100" type="text">';
+            category_html += '<button type="submit" data-unique-id="'+ unique_id +'" data-donation-type="' + donation_type + '" class="btn btn-primary submit-custom-category-name">Submit</button>';
+            category_html += '</div>';
+            $('.modal-info-container.create-custom-container').html(category_html);
+            $('.blur-overlay.create-custom').show();
+            $(this).prop('selectedIndex', 0);
+        } else {
+            let selectedOptionValue = $(this).val();
+            $(this).find('option').removeAttr('selected');
+            $(this).find('option[value="' + selectedOptionValue + '"]').attr('selected', 'selected');
+        }
+    });
+
+   $(document).on('click', '.submit-custom-category-name', function(){
+        let category_name = $('.custom-category-name-input').val();
+        let donation_category_type = $('.submit-custom-category-name').attr('data-donation-type');
+        let unique_id = $('.submit-custom-category-name').attr('data-unique-id');
+        let data = {
+            'category_name': category_name,
+            'donation_category_type': donation_category_type,
+            'unique_id': unique_id,
+            'csrfmiddlewaretoken': '{{ csrf_token }}'
+        };
+
+        // Store the ID of the dropdown that triggered the event
+        let triggeredDropdownId = $('.check-category-selection').attr('id');
+
+        $.ajax({
+            url: "{% url 'create_custom_category' %}",
+            type: 'POST',
+            dataType: 'json',
+            data: JSON.stringify(data),
+            beforeSend: function(xhr, settings) {
+                xhr.setRequestHeader("X-CSRFToken", data.csrfmiddlewaretoken);
+            },
+            success: function(response) {
+                if (response.success === 1) {
+                    $('.submit-custom-category-name').attr('disabled', true);
+                    $('.blur-overlay.create-custom').hide();
+                    let unique_id = response.unique_id;
+                    let custom_category_id = parseInt(response.custom_category_id);
+                    let count_category = parseInt(response.count_category);
+                    let count_name = response.category_name;
+                    let original_category_name = response.original_name;
+                    let category_html = '';
+                    let select_category = $('th.add-custom-collection[data-category-id="'+ count_category +'"]');
+
+                    category_html += '<tr data-original-name="' + original_category_name + '" class="new-custom-category" data-custom-category-id="' + custom_category_id + '" data-category-id="' + count_category + '" data-category-name="' + count_name + '">';
+                    category_html += '<th colspan="2">' + count_name + '</th>';
+                    category_html += '<td><input class="donation-entry form-control" data-denomination="1" data-custom-category-id="'+ custom_category_id +'" data-category-id="' + count_category + '" min="0" max="1000" type="number" value="0"></td>';
+                    category_html += '<td><input class="donation-entry form-control" data-denomination="2" data-custom-category-id="'+ custom_category_id +'" data-category-id="' + count_category + '" min="0" max="1000" type="number" value="0"></td>';
+                    category_html += '<td><input class="donation-entry form-control" data-denomination="5" data-custom-category-id="'+ custom_category_id +'" data-category-id="' + count_category + '" min="0" max="1000" type="number" value="0"></td>';
+                    category_html += '<td><input class="donation-entry form-control" data-denomination="10" data-custom-category-id="'+ custom_category_id +'" data-category-id="' + count_category + '" min="0" max="1000" type="number" value="0"></td>';
+                    category_html += '<td><input class="donation-entry form-control" data-denomination="20" data-custom-category-id="'+ custom_category_id +'" data-category-id="' + count_category + '" min="0" max="1000" type="number" value="0"></td>';
+                    category_html += '<td><input class="donation-entry form-control" data-denomination="50" data-custom-category-id="'+ custom_category_id +'" data-category-id="' + count_category + '" min="0" max="1000" type="number" value="0"></td>';
+                    category_html += '<td><input class="donation-entry form-control" data-denomination="100" data-custom-category-id="'+ custom_category_id +'" data-category-id="' + count_category + '" min="0" max="1000" type="number" value="0"></td>';
+                    category_html += '<td class="donation-cat-total" data-custom-category-id="'+ custom_category_id +'" data-category-id="' + count_category + '">0.00</td>';
+                    category_html += '</tr>';
+
+                    select_category.closest('tr').after(category_html);
+                    let customCategoryId = response.custom_category_id;
+                    let countCategoryId = response.count_category;
+                    let categoryName = response.category_name;
+
+                    // Update the check dropdown with the new option
+                    $('select.check-category-selection').each(function() {
+                        // Append the new option to each select element
+                        $(this).append('<option class="custom-collection-category" value="' + customCategoryId + '" data-category-id="' + countCategoryId + '">' + categoryName + '</option>');
+                    });
+                    $(".check-category-selection[data-unique-id='" + unique_id + "']").find("option[value='" + customCategoryId + "']").prop("selected", true);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.log('Error:', error);
+            }
+        });
+    });
+
+  $(document).on('click', '.submit-final-count', function(){
+      localStorage.setItem('removels', '1');
+      if(confirm('Have you double checked the count is accurate and you are ready to submit this as a final count?')){
+        let data = {
+            'csrfmiddlewaretoken': '{{ csrf_token }}'
+        };
+          $.ajax({
+                url: "{% url 'count_report_redirect' %}",
+                type: "POST",
+                dataType: "json",
+                data: JSON.stringify(data),
+                beforeSend: function(xhr, settings) {
+                    xhr.setRequestHeader("X-CSRFToken", data.csrfmiddlewaretoken);
+                },
+                success: function(data) {
+                    window.location.href = data.new_page_url;
+                },
+                error: function(xhr, status, error) {
+                    console.log("Error:", error);
+                }
+            });
+      } else {
+          return false;
+      }
+  })
+
+   function generateUniqueId(){
+       var uniqueID = "";
+        for (var i = 0; i < 10; i++) {
+          var randomNumber = Math.floor(Math.random() * 36);
+          var character = String.fromCharCode(randomNumber + 48);
+          if (randomNumber < 10) {
+            character = String.fromCharCode(randomNumber + 65);
+          }
+          uniqueID += character;
+        }
+        return uniqueID;
+   }
+
+   $(document).on('change', '.donation-amount', function(){
+    updateTotalChecks();
+   });
+
+   function updateTotalChecks() {
+    let total_checks = 0.00; // Initialize total checks to zero
+    $('.donation-amount').each(function() { // Iterate over each donation amount input
+        let amount = $(this).val(); // Get the value of the current input
+        amount = amount ? parseFloat(amount) : 0.00; // Convert to float or zero if empty
+        total_checks += amount; // Add to the total checks sum
+    });
+    $('.all-checks-total').text('Total: $' + total_checks.toFixed(2)); // Update the total display with formatted sum
+}
+
+    $(document).on('click', '.correct-count', function(){
+        $('.blur-overlay.review').hide();
+        $('#review-count').removeAttr('disabled');
+    });
+
+    // Helper Functions
+
+      function validate_check_data(element){
+      let categorySelection = $(element).find('.check-category-selection').val();
+      let parishionerChoice = $(element).find('.parishioner-select').val();
+      let donationAmount = $(element).find('.donation-amount');
+      $(element).find('.red-input').removeClass('red-input');
+      $(element).find('.red-input').removeClass('green-input');
+      let isValid = true;
+      if (categorySelection === 'Select a Category...') {
+        $(element).find('.check-category-selection').addClass('red-input');
+        $(element).find('.check-category-selection').removeClass('green-input');
+        isValid = false;
+      } else {
+          $(element).find('.check-category-selection').addClass('green-input');
+          $(element).find('.check-category-selection').removeClass('red-input');
+      }
+      if (parishionerChoice === 'Select Parishoner...') {
+        $(element).find('.parishioner-select').addClass('red-input');
+        $(element).find('.parishioner-select').removeClass('green-input');
+        isValid = false;
+      } else {
+          $(element).find('.parishioner-select').addClass('green-input');
+          $(element).find('.parishioner-select').removeClass('red-input');
+      }
+      if (!donationAmount.val()) {
+        donationAmount.addClass('red-input');
+        donationAmount.removeClass('green-input');
+        isValid = false;
+      } else {
+          donationAmount.addClass('green-input');
+          donationAmount.removeClass('red-input');
+      }
+
+      return isValid;
+  }
+
+    // Save and Restore Table Functions
+
+      // Table Functions
+    
+    function generateTableHeader() {
+        return '<thead><tr><th>#</th><th>Category</th><th>Check Number</th><th>Cash Donation</th><th>Parishioner Name</th><th>Amount</th></tr></thead><tbody>';
+    }
+    
+    function generateTableFooter() {
+        return '</tbody><tfoot><tr><th colspan="4"></th><th style="text-align: right">Total:</th><th class="all-checks-total">Total: $0.00</th></tr></tfoot>';
+    }
+    
+    function restoreCheckTableState(autosaveData) {
+        let checkData = autosaveData.checkData;
+        let row_html = generateTableHeader();
+    
+        if (checkData.checks.length === 0) {
+            row_html += generateBlankCheckRow(checkData, 1); // Assuming the first row index should be 1
+        } else {
+            $.each(checkData.checks, function(index, value) {
+                row_html += generateCheckRow(value, index + 1, checkData);
+            });
+        }
+    
+        row_html += generateTableFooter();
+        $('#check-table').html(row_html);
+    }
+    
+    function generateTableHeader() {
+        return '<thead><tr><th>#</th><th>Category</th><th>Check Number</th><th>Cash Donation</th><th>Parishioner Name</th><th>Amount</th></tr></thead><tbody>';
+    }
+    
+    function generateTableFooter() {
+        return '</tbody><tfoot><tr><th colspan="5"></th><th class="all-checks-total">Total: $0.00</th></tr></tfoot>';
+    }
+    
+    function generateCheckRow(value, counter, checkData) {
+        let unique_id = generateUniqueId();
+        return '<tr class="check_row">' +
+            '<td class="check-row-number" data-check-row-value="' + counter + '">' + counter + '</td>' +
+            generateCategorySelect(value, unique_id, checkData) +
+            '<td><input class="parishoner-check-number form-control" type="text" value="' + (value.checkNumber || '') + '"></td>' +
+            '<td><input class="cash-donation form-check-input" type="checkbox"' + (value.cashDonation ? ' checked' : '') + '></td>' +
+            generateParishionerSelect(value, checkData) +
+            '<td><input class="donation-amount form-control" min="0" type="number" value="' + (value.amount || '0') + '"></td>' +
+            '</tr>';
+    }
+    
+    function generateBlankCheckRow(checkData, counter) {
+        let blankValue = {category: '', checkNumber: '', cashDonation: false, parishioner: '', amount: ''};
+        return generateCheckRow(blankValue, counter, checkData);
+    }
+    
+    function generateCategorySelect(value, unique_id, checkData) {
+        let select_html = '<td><select class="check-category-selection form-select" data-unique-id="' + unique_id + '">';
+        select_html += '<option>Select a Category...</option>';
+    
+        // Handle standard categories
+        $.each(checkData.categories.standard_categories, function(id, name) {
+            let isSelected = value.category === parseInt(id, 10) && value.customCategoryId === null ? ' selected' : '';
+            select_html += `<option class="add-standard-collection" data-category-id="${id}" value="${id}"${isSelected}>${name}</option>`;
+        });
+
+        $.each(checkData.categories.add_categories, function(id, name) {
+            select_html += `<option class="add-custom-collection" data-category-id="${id}" data-category-name="${name}" value="${id}">${name}</option>`
+        });
+    
+        // Handle custom categories
+        $.each(checkData.categories.custom_categories, function(customCatId, customCats) {
+            $.each(customCats, function(mainCatId, customCatName) {
+                console.log('value.category')
+                console.log(value.category)
+                console.log('mainCatId')
+                console.log(mainCatId);
+                console.log('value.customCategoryId')
+                console.log(value.customCategoryId);
+                let isSelected = value.category === parseInt(mainCatId, 10) && value.customCategoryId === customCatId ? ' selected' : '';
+                select_html += `<option class="custom-collection-category" data-category-id="${mainCatId}" value="${customCatId}"${isSelected}>${customCatName}</option>`;
+            });
+        });
+    
+        select_html += '</select></td>';
+        return select_html;
+    }
+    
+    function generateParishionerSelect(value, checkData) {
+        let select_html = '<td><select class="parishioner-select form-select" name="parishioner-choice">';
+        select_html += '<option>Select Parishoner...</option>';
+        select_html += '<option value="add-new" data-type="add">Add New Parishioner</option>';
+    
+        // Add all parishioners from the checkData
+        $.each(checkData.people, function(id, name) {
+            let isSelected = value.parishioner === id ? ' selected' : '';
+            select_html += '<option value="' + id + '"' + isSelected + '>' + name + '</option>';
+        });
+        return select_html + '</select></td>';
+    }
+    
+    function generateUniqueId() {
+        return Math.random().toString(36).substring(2, 10); // Shortened for brevity
+    }
+    
+
+    function getCheckData() {
+        let tableState = {
+            'people': get_people(),
+            'categories': get_categories(),
+            'checks': [],
+            'allRowsBlank': true
+        };
+    
+        $('tr.check_row').each(function(index, row) {
+            let $categorySelect = $(row).find('.check-category-selection');
+            let selectedOption = $categorySelect.find('option:selected');
+            let isCustom = selectedOption.hasClass('custom-collection-category');
+    
+            let rowData = {
+                category: selectedOption.data('category-id'), // Always the main category ID
+                checkNumber: $(row).find('.parishoner-check-number').val(),
+                cashDonation: $(row).find('.cash-donation').prop('checked'),
+                parishioner: $(row).find('.parishioner-select').val(),
+                amount: $(row).find('.donation-amount').val(),
+                customCategoryId: isCustom ? $categorySelect.val() : null // Custom category ID if applicable
+            };
+    
+            if (!isRowBlank(rowData)) {
+                tableState.checks.push(rowData);
+                tableState.allRowsBlank = false;
+            }
+        });
+    
+        console.log(tableState);
+        return tableState;
+    }
+    
+    // Helper function to determine if a row is blank
+    function isRowBlank(rowData) {
+        return rowData.category === "Select a Category..." &&
+               rowData.checkNumber === "" &&
+               rowData.parishioner === "Select Parishoner..." &&
+               (rowData.amount === "" || parseFloat(rowData.amount) === 0) &&
+               !rowData.cashDonation;
+    }
+
+    function saveTableState(data, name){
+      localStorage.setItem(name, data);
+    }
+
+    function restoreCashTableState(autosaveData) {
+        console.log('restoreCashTableState started');
+        console.log(autosaveData);
+        console.log(autosaveData.cashData);
+        if (!autosaveData || !autosaveData.cashData) return;
+        console.log('1st condition');
+        let cash_data = autosaveData.cashData;
+        let cash_html = '';
+        cash_html += '<table id="cash-table" class="table table-striped table-light">';
+        cash_html +='<thead><tr><th colspan="2">Donation Categories</th><th colspan="10">Cash Denominations</th></tr><tr><th colspan="2">Category</th>'
+        cash_html +='<th>$1.00</th><th>$2.00</th><th>$5.00</th><th>$10.00</th><th>$20.00</th><th>$50.00</th><th>$100.00</th><th>Cash Total</th></tr></thead><tbody>'
+        $.each(cash_data.standard_categories, function(index, item) {
+           cash_html += generateStandardCashRow(item.categoryId, item.categoryName, item.data);
+        });
+        console.log('cash_data.custom_categories');
+        console.log(cash_data.custom_categories);
+        if(cash_data.custom_categories.length <= 0){
+            console.log('2nd condition');
+            cash_html += '<tr><th class="clickable-th add-custom-collection" data-unique-id="" data-category-id="5" data-category-name="Diocesan Collection" colspan="10">Add New Diocesan Collection</th></tr>'
+            cash_html += '<tr><th class="clickable-th add-custom-collection" data-unique-id="" data-category-id="6" data-category-name="Special Collection" colspan="10">Add New Special Collection</th></tr>'
+            cash_html += '<tr><th class="clickable-th add-custom-collection" data-unique-id="" data-category-id="9" data-category-name="Miscellaneous Collection" colspan="10">Add New Miscellaneous Collection</th></tr>'
+        } else {
+            console.log('3rd condition');
+            $.each(cash_data.custom_categories, function(index, item) {
+                cash_html += '<tr>'
+                cash_html += '<th class="clickable-th add-custom-collection" data-unique-id="" data-category-id="'+ item.categoryId +'" data-category-name="' + item.categoryName + '" colspan="10">Add New ' + item.categoryName + '</th>'
+                cash_html += '</tr>'
+                $.each(item.data, function(index2, item2) {
+                    cash_html += generateCustomCashRow(item.categoryId, item.categoryName, item2.customCategoryId, item2.customCategoryName, item2.customCategoryData)
+                });
+            });
+        }
+        cash_html += '<tr><th colspan="2">Total Count</th><th class="total-one-count">0</th><th class="total-two-count">0</th><th class="total-five-count">0</th><th class="total-ten-count">0</th><th class="total-twenty-count">0</th><th class="total-fifty-count">0</th><th class="total-hundred-count">0</th><th></th></tr>'
+        cash_html += '<tr> <th colspan="2">Total $</th><th class="one-total">$0.00</th> <th class="two-total">$0.00</th><th class="five-total">$0.00</th> <th class="ten-total">$0.00</th><th class="twenty-total">$0.00</th> <th class="fifty-total">$0.00</th><th class="hundred-total">$0.00</th> <th class="grand-total">$0.00</th></tr>'
+        cash_html += '</tbody></table>';
+        console.log('4th condition');
+        console.log(cash_html)
+        let final_table = $('#cash-table');
+        final_table.replaceWith(cash_html);
+    }
+
+      // Cash
+
+      function getCashdata() {
+        let cashData = {
+            standard_categories: [],
+            custom_categories:[]
+        };
+
+        let cash_table = $('#cash-table tbody');
+
+        cash_table.find('.standard-collection-row').each(function(optionIndex, optionElement) {
+            let categoryObj = {
+                categoryId: $(optionElement).attr('data-category-id'),
+                categoryName: $(optionElement).attr('data-category-name'),
+                data: []
+            };
+
+            $(optionElement).find('td input').each(function(tdIndex, tdData) {
+                let denominationData = {
+                    denomination: $(tdData).attr('data-denomination'),
+                    value: $(tdData).val()
+                };
+                categoryObj.data.push(denominationData);
+            });
+
+            cashData.standard_categories.push(categoryObj);
+        });
+
+        $("#cash-table tbody tr.new-custom-category").each(function() {
+            const $this = $(this);
+
+            const customCategoryId = $this.data('custom-category-id');
+            const categoryId = $this.data('category-id');
+            const customCategoryName = $this.data('category-name');
+            const originalCategoryName = $this.attr('data-original-name');
+
+            const customCategoryData = [];
+
+            $this.find('input.donation-entry').each(function() {
+                const $input = $(this);
+                const denomination = $input.data('denomination').toString();
+                const value = $input.val();
+
+                customCategoryData.push({
+                    denomination: denomination,
+                    value: value
+                });
+            });
+
+            // Find the category in the result
+            let category = cashData.custom_categories.find(cat => cat.categoryId === categoryId.toString());
+            if (!category) {
+                category = {
+                    categoryId: categoryId.toString(),
+                    categoryName: originalCategoryName,
+                    data: []
+                };
+                cashData.custom_categories.push(category);
+            }
+
+            category.data.push({
+                customCategoryId: customCategoryId.toString(),
+                customCategoryName: customCategoryName,
+                customCategoryData: customCategoryData
+            });
+        });
+
+        return cashData;
+    }
+
+    function generateStandardCashRow(category_id, category_name, category_data){
+        let row_html = '';
+        row_html += '<tr class="standard-collection-row" data-category-id="' + category_id + '" data-category-name="' + category_name + '">'
+        row_html += '<th colspan="2">'+ category_name +'</th>'
+        $.each(category_data, function(index, item) {
+             row_html += '<td><input class="donation-entry form-control" data-denomination="' + item.denomination + '" data-category-id="' + category_id + '" min="0" max="1000" type="number" value="' + item.value + '"></td>'
+        });
+        row_html += '<td class="donation-cat-total" data-category-id="' + category_id + '">0.00</td></tr>'
+        return row_html;
+    }
+
+    function generateCustomCashRow(categoryId, categoryName, customCategoryId, customCategoryName, customCategoryData){
+        console.log('customCategoryId')
+        console.log(customCategoryId)
+        console.log('customCategoryName')
+        console.log(customCategoryName)
+        console.log('customCategoryData')
+        console.log(customCategoryData)
+
+        let row_html = '';
+        row_html += '<tr data-original-name="' + categoryName + '" class="new-custom-category" data-custom-category-id="' + customCategoryId + '" data-category-id="'+ categoryId +'" data-category-name="'+ customCategoryName +'">'
+        row_html += '<th colspan="2">' + customCategoryName + '</th>'
+        $.each(customCategoryData, function(index, item) {
+            row_html += '<td><input class="donation-entry form-control" data-denomination="' + item.denomination + '" data-custom-category-id="' + customCategoryId + '" data-category-id="' + categoryId + '" min="0" max="1000" type="number" value="' + item.value + '"></td>'
+        });
+        row_html += '<td class="donation-cat-total" data-custom-category-id="' + customCategoryId + '" data-category-id="'+ categoryId +'">0.00</td>'
+        row_html += '</tr>'
+        return row_html;
+    }
+
+    // Checks
+      function get_people() {
+        let people = {};
+        let firstParishionerSelect = $('.parishioner-select:first');
+        firstParishionerSelect.find('option').each(function(optionIndex, optionElement) {
+            let optionValue = $(optionElement).val();
+            people[optionValue] = $(optionElement).text();
+        });
+        return people;
+    }
+
+    function get_categories() {
+        let standard_categories = {};
+        let add_categories = {};
+        let custom_categories = {};
+
+        let firstCategorySelect = $('.check-category-selection:first');
+
+        firstCategorySelect.find('.add-standard-collection').each(function(optionIndex, optionElement) {
+            let standard_category_id = $(optionElement).val();
+            if ($(optionElement).text() != null) {
+                standard_categories[standard_category_id] = $(optionElement).text();
+            }
+        });
+
+        firstCategorySelect.find('.add-custom-collection').each(function(optionIndex, optionElement) {
+            let add_category_id = $(optionElement).val();
+            console.log(optionIndex)
+            console.log(optionElement)
+            if ($(optionElement).text() != null) {
+                add_categories[add_category_id] = $(optionElement).text();
+            }
+        });
+
+        firstCategorySelect.find('.custom-collection-category').each(function(optionIndex, optionElement) {
+            let other_category_id = $(optionElement).val();
+            let custom_category_id = $(optionElement).attr('data-category-id');
+            let custom_category_name = $(optionElement).text();
+            if (custom_category_name != null) {
+                custom_categories[other_category_id] = { [custom_category_id] : custom_category_name };
+            }
+        });
+
+        return {
+            'standard_categories': standard_categories,
+            'add_categories': add_categories,
+            'custom_categories': custom_categories
+        };
+    }
+
+    // AutoSave Function
+    {% comment %} function autoSaveTable() {
+        console.log("Function executed!");
+        let return_object = {};
+        let count_id = $('.count-id-hidden').attr('data-count-id');
+        return_object['count_id'] = count_id;
+        return_object['checks'] = {};
+        let counter = 0;
+        $('.check_row').each(function(index, element) {
+            isValid = validate_check_data(element);
+            var new_obj;
+            if (isValid) {
+                counter += 1;
+                let custom_category = null;
+                let selectedOption = $(element).find('.check-category-selection option:selected');
+                let category = parseInt(selectedOption.attr('data-category-id'));
+                if(selectedOption.hasClass('custom-collection-category')){
+                    custom_category = parseInt(selectedOption.val());
+                } else {
+                    custom_category = null;
+                }
+                let check_number = $(element).find('.parishoner-check-number').val();
+                let cash_donation = $(element).find('.cash-donation').prop("checked");
+                let parishioner = parseInt($(element).find('.parishioner-select').val());
+                let donation_amount = parseFloat($(element).find('.donation-amount').val());
+                new_obj = {
+                    'category': category,
+                    'check_number': check_number,
+                    'cash_donation': cash_donation,
+                    'parishioner': parishioner,
+                    'donation_amount': donation_amount,
+                    'count_id': count_id,
+                    'custom_category': custom_category
+                };
+                return_object['checks'][counter] = new_obj;
+            }
+        });
+        console.log(return_object)
+        var data = {
+            'return_object': return_object,
+            'csrfmiddlewaretoken': '{{ csrf_token }}'
+        };
+
+        $.ajax({
+            url: "{% url 'autosave_checks' %}",
+            type: 'POST',
+            dataType: 'json',
+            data: JSON.stringify(data),
+            beforeSend: function(xhr, settings) {
+                xhr.setRequestHeader("X-CSRFToken", data.csrfmiddlewaretoken);
+            },
+            success: function(response) {
+                if (response.success === 1) {
+                    console.log("Message:", response.Message);
+                    let table_data = collectTableState();
+                    let cash_table = getCashdata()
+                    let table_data_string = JSON.stringify(table_data);
+                    let cash_data_table = JSON.stringify(cash_table);
+                    saveTableState(table_data_string, 'checkdata');
+                    saveTableState(cash_data_table, 'cashdata');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.log('Error:', error);
+            }
+        });
+    } {% endcomment %}
+
+    function autosaveCount(){
+        let count_id = $('.count-id-hidden').attr('data-count-id');
+        let count_data = {}
+        let checkData = getCheckData();
+        let cashData = getCashdata();
+        count_data = {
+            'checkData': checkData,
+            'cashData': cashData,
+        }
+
+        var data = {
+            'csrfmiddlewaretoken': '{{ csrf_token }}',
+            'count_id': count_id,
+            'data': count_data
+        };
+        $.ajax({
+            url: "{% url 'autosave_count' %}",
+            type: 'POST',
+            data: JSON.stringify(data),
+            beforeSend: function(xhr, settings) {
+                xhr.setRequestHeader("X-CSRFToken", data.csrfmiddlewaretoken);
+            },
+            success: function(response) {
+                if(response.success === 1){
+                    console.log(response)
+                    console.log('Count Autosaved');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.log('Error clearing session:', error);
+            }
+        });
+
+    }
+
+    // On ready Functions
+
+    function isCashDataEmpty(cashData) {
+        // Checks if every category in standard_categories has every denomination value as "0"
+        const isEmptyStandardCategories = cashData.standard_categories.every(category =>
+            category.data.every(denomination => denomination.value === "0")
+        );
+
+        // Checks if custom_categories is empty
+        const isEmptyCustomCategories = cashData.custom_categories.length === 0;
+
+        return isEmptyStandardCategories && isEmptyCustomCategories;
+    }
+
+    function isCheckDataEmpty(checkData) {
+        // Check if every entry in the checks array is "empty" by your application's definition
+        return checkData.checks.every(check =>
+            check.category === "Select a Category..." &&
+            check.checkNumber === "" &&
+            check.cashDonation === false &&
+            check.parishioner === "Select Parishoner..." &&
+            (check.amount === "" || check.amount === "0")
+        );
+    }
+
+    $(document).ready(function() {
+        var autosaveDataElement = $('#autosaveDataId').text();
+        console.log(autosaveDataElement)
+        if (autosaveDataElement && autosaveDataElement.length > 0) {
+            var autosaveData = JSON.parse(autosaveDataElement || '{}');
+            console.log('Autosave data loaded:', autosaveData);
+    
+            if (autosaveData.checkData) {
+                console.log('restoring check data');
+                restoreCheckTableState(autosaveData);
+            }
+            if (autosaveData.cashData) {
+                console.log('restoring cash data');
+                restoreCashTableState(autosaveData);
+            }
+            updateTotals();
+            updateTotalChecks();
+        } else {
+            console.log("No autosave data available.");
+        }
+    
+        // Set interval for autosaving count data every 15 seconds
+        setInterval(function() {
+            autosaveCount();
+        }, 10000);
+    });
+    
+    // Before Unload
+    $(window).on('beforeunload', function() {
+        autosaveCount();
+    });
+
+    $(document).on('click', '#exit-count', function(){
+       localStorage.removeItem('removels');
+       localStorage.removeItem('cashdata');
+        localStorage.removeItem('checkdata');
+       window.location.pathname = "/index";
+    });
+
+  </script>
+</html>

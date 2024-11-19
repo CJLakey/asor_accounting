@@ -1,0 +1,47 @@
+tr{
+    text-align: center;
+}
+
+table{
+    margin-bottom: 0 !important;
+}
+
+.count-selector:hover{
+    color: #ffffff;
+    background: #586069
+}
+
+.check-controls-wrapper{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+.check-control-button{
+    width: 300px;
+    margin: 10px;
+}
+
+.review-header{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    background: #000;
+    color: #fff;
+}
+
+.clickable-th.add-custom-collection:hover {
+    color: #20e131;
+    cursor:pointer;
+}
+
+.red-input {
+  border: 1px solid red;
+}
+
+.green-input {
+    border: 1px solid #20e131;
+}

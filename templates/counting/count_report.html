@@ -1,0 +1,220 @@
+{% extends 'counting/base.html' %}
+{% load crispy_forms_filters %}
+{% block content %}
+{% load crispy_forms_tags %}
+{% load static %}
+<head>
+<!--    <link href="{% static '/counting/css/count_report.css' %}" rel="stylesheet" type="text/css"/>-->
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
+    <title>Count Report</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+</head>
+<style>
+body {
+    font-family: "Arial", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+}
+
+.table {
+    border-collapse: collapse; /* Use this to ensure border-spacing is not an issue */
+    border-spacing: 0;
+    width: 100%;
+}
+
+.table th, .table td {
+    padding: 8px; /* Adjust padding as needed, smaller values mean less space */
+    text-align: left; /* or center, depending on your preference */
+}
+
+.table th {
+    background-color: #f2f2f2; /* Optional: styling header background */
+    font-size: 14px; /* Adjust font size as needed */
+}
+
+.table td {
+    font-size: 14px; /* Adjust font size as needed */
+    line-height: 1.4; /* Adjust line height for less vertical spacing */
+}
+
+.report-table-wrapper{
+    display:block;
+}
+
+.report-table-container{
+    min-width: 50vw;
+}
+
+.exit-count-container{
+    text-align: center;
+    margin: 20px;
+}
+
+.roboto-thin {
+  font-family: "Roboto", sans-serif;
+  font-weight: 100;
+  font-style: normal;
+}
+
+.roboto-light {
+  font-family: "Roboto", sans-serif;
+  font-weight: 300;
+  font-style: normal;
+}
+
+.roboto-regular {
+  font-family: "Roboto", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.roboto-medium {
+  font-family: "Roboto", sans-serif;
+  font-weight: 500;
+  font-style: normal;
+}
+
+.roboto-bold {
+  font-family: "Roboto", sans-serif;
+  font-weight: 700;
+  font-style: normal;
+}
+
+.roboto-black {
+  font-family: "Roboto", sans-serif;
+  font-weight: 900;
+  font-style: normal;
+}
+
+.roboto-thin-italic {
+  font-family: "Roboto", sans-serif;
+  font-weight: 100;
+  font-style: italic;
+}
+
+.roboto-light-italic {
+  font-family: "Roboto", sans-serif;
+  font-weight: 300;
+  font-style: italic;
+}
+
+.roboto-regular-italic {
+  font-family: "Roboto", sans-serif;
+  font-weight: 400;
+  font-style: italic;
+}
+
+.roboto-medium-italic {
+  font-family: "Roboto", sans-serif;
+  font-weight: 500;
+  font-style: italic;
+}
+
+.roboto-bold-italic {
+  font-family: "Roboto", sans-serif;
+  font-weight: 700;
+  font-style: italic;
+}
+
+.roboto-black-italic {
+  font-family: "Roboto", sans-serif;
+  font-weight: 900;
+  font-style: italic;
+}
+
+@media print {
+  #hide-in-pdf {
+    display: none;
+  }
+}
+</style>
+<body>
+    <div class="report-table-wrapper">
+        <div class="report-table-container">
+            <table style="page-break-after: always;" class="table table-striped table-light">
+                <tr>
+                    <th style="text-align: center" colspan="3">Count Report</th>
+                </tr>
+                <tr>
+                    <th style="text-align: center" colspan="3">Count Date: {{ count_date }}</th>
+                </tr>
+                <tr>
+                    <th style="text-align: center" colspan="3">Counted by: {{ users_name }}</th>
+                </tr>
+                <tr>
+                    <th style="text-align: center" colspan="3">Category Donations Data</th>
+                </tr>
+                <tr>
+                    <th>QB Account</th>
+                    <th>Category</th>
+                    <th>Total</th>
+                </tr>
+                {% for key, total in category_donation_data.items %}
+                    <tr>
+                        <td>{{ key.0 }}</td> <!-- qb_account -->
+                        <td>{{ key.1 }}</td> <!-- category -->
+                        <td>${{ total }}</td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+        <div class="report-table-container">
+            <table style="page-break-after: always;" class="table table-striped table-light">
+                {% if membership_data %}
+                    <tr>
+                        <th style="text-align: center" colspan="3">Membership Data</th>
+                    </tr>
+                     <tr>
+                        <th>Parishoner Name</th>
+                        <th>Payment Type</th>
+                        <th>Donation Amount</th>
+                    </tr>
+                    {% for index, data in membership_data.items %}
+                        <tr>
+                            <td>{{ data.parishoner_name }}</td>
+                            <td>{{ data.payment_type }}</td>
+                            <td>${{ data.donation_amount }}</td>
+                        </tr>
+                    {% endfor %}
+                {% endif %}
+                <tr>
+                    <th style="text-align: center" colspan="3">Denomination Data</th>
+                </tr>
+            </table>
+            <table class="table table-striped table-light">
+                <tr>
+                    <th>Denomination</th>
+                    <th>Bills Count</th>
+                    <th>Bills Value</th>
+                </tr>
+                {% for denomination, data in denomination_data.items %}
+                <tr>
+                    <td>{{ denomination }}</td>
+                    <td>{{ data.bills_count }}</td>
+                    <td>${{ data.bills_value }}</td>
+                </tr>
+                {% endfor %}
+                <tr>
+                    <th style="text-align: center" colspan="3">Donation Totals</th>
+                </tr>
+                <tr>
+                    <th colspan="2">Checks Total:</th>
+                    <td>${{ check_grand_total }}</td>
+                </tr>
+                <tr>
+                    <th colspan="2">Cash Total:</th>
+                    <td>${{ cash_grand_total }}</td>
+                </tr>
+                <tr>
+                    <th colspan="2">Grand Total</th>
+                    <td>${{ grand_total }}</td>
+                </tr>
+            </table>
+        </div>
+    <div id="hide-in-pdf" class="exit-count-container">
+        <button type="button" id="exit-count" class="btn btn-dark">Exit Count</button>
+    </div>
+    </div>
+</body>
+{% endblock %}

@@ -1,0 +1,162 @@
+{% extends 'counting/base.html' %}
+{% load crispy_forms_filters %}
+{% block content %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+<head>
+    <link href="{% static '/counting/css/count.css' %}" rel="stylesheet" type="text/css"/>
+    <title>Count</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+    <script src="{% static 'counting/js/count.js' %}"></script>
+</head>
+    {% if autosave_data %}
+        <div id="autosaveDataId" style="display:none;">{{ autosave_data|json_script:"autosaveData" }}</div>
+    {% endif %}
+    <div class="count-id-hidden" data-count-id="{{ new_count_id }}"></div>
+    <div class="count-type-selector-container">
+        <table class="table table-light">
+            <thead>
+            <tr>
+                <th style="background: #2c3034 !important; color: #fff !important" class="count-selector" data-selector-type="cash">Count Cash</th>
+                <th class="count-selector" data-selector-type="check">Count Checks</th>
+            </tr>
+            </thead>
+        </table>
+    </div>
+    <div class="cash-count-container">
+        <table id="cash-table" class="table table-striped table-light">
+            <thead>
+                <tr>
+                    <th colspan="2">Donation Categories</th>
+                    <th colspan="10">Cash Denominations</th>
+                </tr>
+                <tr>
+                    <th colspan="2">Category</th>
+                    <th>$1.00</th>
+                    <th>$2.00</th>
+                    <th>$5.00</th>
+                    <th>$10.00</th>
+                    <th>$20.00</th>
+                    <th>$50.00</th>
+                    <th>$100.00</th>
+                    <th>Cash Total</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% if not count_exists %}
+                {% for category in all_donation_categories %}
+                    {% if category.id == 1 or category.id == 2 or category.id == 3 or category.id == 4 or category.id == 7 or category.id == 8%}
+                    <tr class="standard-collection-row" data-category-id="{{ category.id }}" data-category-name="{{ category.category_name }}">
+                        <th colspan="2">{{ category.category_name }}</th>
+                        <td><input class="donation-entry form-control" data-denomination="1" data-category-id="{{ category.id }}" min="0" max="1000" type="number" value="0"></td>
+                        <td><input class="donation-entry form-control" data-denomination="2" data-category-id="{{ category.id }}" min="0" max="1000" type="number" value="0"></td>
+                        <td><input class="donation-entry form-control" data-denomination="5" data-category-id="{{ category.id }}" min="0" max="1000" type="number" value="0"></td>
+                        <td><input class="donation-entry form-control" data-denomination="10" data-category-id="{{ category.id }}" min="0" max="1000" type="number" value="0"></td>
+                        <td><input class="donation-entry form-control" data-denomination="20" data-category-id="{{ category.id }}" min="0" max="1000" type="number" value="0"></td>
+                        <td><input class="donation-entry form-control" data-denomination="50" data-category-id="{{ category.id }}" min="0" max="1000" type="number" value="0"></td>
+                        <td><input class="donation-entry form-control" data-denomination="100" data-category-id="{{ category.id }}" min="0" max="1000" type="number" value="0"></td>
+                        <td class="donation-cat-total" data-category-id="{{ category.id }}">0.00</td>
+                    </tr>
+                    {% endif %}
+                {% endfor %}
+                {% for category in all_donation_categories %}
+                    {% if category.id == 9 or category.id == 6 or category.id == 5%}
+                        <tr>
+                            <th class="clickable-th add-custom-collection" data-unique-id="{{ misc_id }}" data-category-id="{{ category.id }}" data-category-name="{{ category.category_name }}" colspan="10">Add New {{ category.category_name }}</th>
+                        </tr>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+            {% if count_exists %}
+
+            {% endif %}
+                <tr>
+                    <th colspan="2">Total Count</th>
+                    <th class="total-one-count">0</th>
+                    <th class="total-two-count">0</th>
+                    <th class="total-five-count">0</th>
+                    <th class="total-ten-count">0</th>
+                    <th class="total-twenty-count">0</th>
+                    <th class="total-fifty-count">0</th>
+                    <th class="total-hundred-count">0</th>
+                    <th></th>
+                </tr>
+                <tr>
+                    <th colspan="2">Total $</th>
+                    <th class="one-total">$0.00</th>
+                    <th class="two-total">$0.00</th>
+                    <th class="five-total">$0.00</th>
+                    <th class="ten-total">$0.00</th>
+                    <th class="twenty-total">$0.00</th>
+                    <th class="fifty-total">$0.00</th>
+                    <th class="hundred-total">$0.00</th>
+                    <th class="grand-total">$0.00</th>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="check-count-container" style="display:none;">
+        <table id="check-table" class="table table-striped table-light">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Category</th>
+                    <th>Check Number</th>
+                    <th>Cash Donation</th>
+                    <th>Parishoner Name</th>
+                    <th>Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% if not count_exists %}
+            <tr class="check_row">
+                <td class="check-row-number" data-check-row-value="1">1</td>
+                <td>
+                    <select class="check-category-selection form-control" data-unique-id="{{ unique_id }}">
+                        <option>Select a Category...</option>
+                        {% for category in all_donation_categories %}
+                            {% if category.id == 1 or category.id == 2 or category.id == 3 or category.id == 4 or category.id == 7 or category.id == 8 or category.id == 10 %}
+                                <option class="add-standard-collection" data-category-id="{{ category.id }}" value="{{ category.id }}">{{ category.category_name }}</option>
+                            {% endif %}
+                        {% endfor %}
+                        {% for category in all_donation_categories %}
+                            {% if category.id == 9 or category.id == 6 or category.id == 5%}
+                                <option class="add-custom-collection" data-category-id="{{ category.id }}" data-category-name="{{ category.category_name }}" value="{{ category.id }}">Add New {{ category.category_name }}</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                </td>
+                <td><input class="parishoner-check-number form-control" type="text"></td>
+                <td><input class="cash-donation form-check-input" type="checkbox"></td>
+                <td>
+                    <select class="parishioner-select form-select" name="parishioner-choice">
+                        <option>Select Parishoner...</option>
+                        <option data-type="add">Add New Parishioner</option>
+                        {% for person in all_parishioners %}
+                            <option value="{{ person.id }}">{{ person.last_name }} {{ person.first_name }}</option>>
+                        {% endfor %}
+                    </select>
+                </td>
+                <td><input class="donation-amount form-control" min="0" type="number"></td>
+            </tr>
+            {% endif %}
+            {% if count_exists %}
+
+
+            {% endif %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <th colspan="4"></th>
+                    <th style="text-align: right">Total:</th>
+                    <th class="all-checks-total">$0.00</th>
+                </tr>
+            </tfoot>
+        </table>
+        <div class="check-controls-wrapper">
+            <button type="button" id="add-check" class="btn btn-dark check-control-button">Add Check/Donation</button>
+            <button type="button" id="review-count" class="btn btn-primary check-control-button">Save Count & Review</button>
+        </div>
+    </div>
+{% endblock %}

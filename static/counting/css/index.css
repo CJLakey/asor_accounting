@@ -1,0 +1,22 @@
+
+.flex-column{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.flex-center{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.fifty-percent-page{
+    width: 50vw;
+}
+
+.main-menu-button{
+    min-width: 177px;
+    margin: 8px;
+}

@@ -1,0 +1,146 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    /*background-color: #747474;*/
+}
+
+#content{
+    background-color: #747474;
+    min-height: 100vh;
+}
+
+.header{
+    height: 50px;
+    text-align: center;
+    padding: 15px;
+    background: #39483d;
+    color: #fff;
+}
+
+.blur-overlay{
+    background: rgba( 255, 255, 255, 0 );
+    box-shadow: 0 8px 32px 0 rgba( 31, 38, 135, 0.37 );
+    backdrop-filter: blur( 4.5px );
+    -webkit-backdrop-filter: blur( 4.5px );
+    border-radius: 10px;
+    border: 1px solid rgba( 255, 255, 255, 0.18 );
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    z-index: 9;
+}
+
+.modal-overlay{
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    z-index: 10;
+    display: flex;
+    justify-content: center;
+}
+
+.modal-info-container{
+    height: fit-content;
+    width: 75vw;
+    position: absolute;
+    z-index: 0;
+    top: 200px;
+    background: #cdcdcd;
+}
+
+html, body {
+  margin: 0;
+  min-height: 100vh;
+  padding: 0;
+}
+
+#close {
+    overflow: hidden;
+    position: relative;
+    border: none;
+    padding: 0;
+    width: 2em;
+    height: 2em;
+    border-radius: 50%;
+    background: transparent;
+    color: #000000;
+    font: inherit;
+    text-indent: 100%;
+    cursor: pointer;
+    float: right;
+}
+
+#close:focus {
+    outline: solid 0 transparent;
+    box-shadow: 0 0 0 2px #8ed0f9;
+}
+
+#close:hover {
+    background: rgba(34, 71, 43, .1)
+}
+
+#close:before,#close:after {
+    position: absolute;
+    top: 15%; left: calc(50% - .0625em);
+    width: .125em; height: 70%;
+    border-radius: .125em;
+    transform: rotate(45deg);
+    background: currentcolor;
+    content: ''
+}
+
+#close:after { transform: rotate(-45deg); }
+
+.new-parishioner-container{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.new-parishioner-container h5{
+    margin-bottom: 30px;
+}
+
+.info-wrapper{
+    display: flex;
+    flex-direction: column;
+}
+
+.info-container{
+    margin: 10px;
+    padding: 10px;
+}
+.parishioner-input{
+    margin: 10px;
+    min-width: 125px !important;
+    max-width: 330px !important;
+}
+
+.submit-custom-category-name{
+    margin: 10px;
+}
+
+.custom-category-name-input{
+    max-width: 400px;
+    margin: 10px;
+}
+
+.category-name-input{
+    margin: 10px;
+}
+
+.custom-category-name-container{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    height: 200px;
+}
+
+.review-count-btn{
+    margin:10px
+}
+

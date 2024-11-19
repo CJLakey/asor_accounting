@@ -1,0 +1,122 @@
+body{
+    font-family: "Roboto", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+}
+
+.table {
+    border-collapse: collapse; /* Use this to ensure border-spacing is not an issue */
+    border-spacing: 0;
+    width: 100%;
+}
+
+.table th, .table td {
+    padding: 8px; /* Adjust padding as needed, smaller values mean less space */
+    text-align: left; /* or center, depending on your preference */
+}
+
+.table th {
+    background-color: #f2f2f2; /* Optional: styling header background */
+    font-size: 14px; /* Adjust font size as needed */
+}
+
+.table td {
+    font-size: 14px; /* Adjust font size as needed */
+    line-height: 1.4; /* Adjust line height for less vertical spacing */
+}
+
+.report-table-wrapper{
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.report-table-container{
+    min-width: 50vw;
+}
+
+.exit-count-container{
+    text-align: center;
+    margin: 20px;
+}
+
+.roboto-thin {
+  font-family: "Roboto", sans-serif;
+  font-weight: 100;
+  font-style: normal;
+}
+
+.roboto-light {
+  font-family: "Roboto", sans-serif;
+  font-weight: 300;
+  font-style: normal;
+}
+
+.roboto-regular {
+  font-family: "Roboto", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.roboto-medium {
+  font-family: "Roboto", sans-serif;
+  font-weight: 500;
+  font-style: normal;
+}
+
+.roboto-bold {
+  font-family: "Roboto", sans-serif;
+  font-weight: 700;
+  font-style: normal;
+}
+
+.roboto-black {
+  font-family: "Roboto", sans-serif;
+  font-weight: 900;
+  font-style: normal;
+}
+
+.roboto-thin-italic {
+  font-family: "Roboto", sans-serif;
+  font-weight: 100;
+  font-style: italic;
+}
+
+.roboto-light-italic {
+  font-family: "Roboto", sans-serif;
+  font-weight: 300;
+  font-style: italic;
+}
+
+.roboto-regular-italic {
+  font-family: "Roboto", sans-serif;
+  font-weight: 400;
+  font-style: italic;
+}
+
+.roboto-medium-italic {
+  font-family: "Roboto", sans-serif;
+  font-weight: 500;
+  font-style: italic;
+}
+
+.roboto-bold-italic {
+  font-family: "Roboto", sans-serif;
+  font-weight: 700;
+  font-style: italic;
+}
+
+.roboto-black-italic {
+  font-family: "Roboto", sans-serif;
+  font-weight: 900;
+  font-style: italic;
+}
+
+@media print {
+  #hide-in-pdf {
+    display: none;
+  }
+}
+
+
